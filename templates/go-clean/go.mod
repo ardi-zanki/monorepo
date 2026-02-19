@@ -1,8 +1,8 @@
 module {{ package_name | kebab_case }}
 
-go 1.25.0
+go 1.26.0
 
-toolchain go1.25.1
+toolchain go1.26.0
 
 require (
 	github.com/exaring/otelpgx v0.9.3

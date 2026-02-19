@@ -2,15 +2,16 @@
 # yaml-language-server: $schema=https://moonrepo.dev/schemas/project.json
 $schema: 'https://moonrepo.dev/schemas/project.json'
 
-type: application
+layer: application
 language: typescript
 stack: frontend
 tags: ['mobile']
 
+# Overrides the name (identifier) of the project
 id: 'expo-app'
 
 project:
-  name: expo-app
+  title: expo-app
   description: '_CHANGE_ME_DESCRIPTION_'
 
 tasks:

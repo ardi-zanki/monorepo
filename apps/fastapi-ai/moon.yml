@@ -2,7 +2,7 @@
 # yaml-language-server: $schema=https://moonrepo.dev/schemas/project.json
 $schema: "https://moonrepo.dev/schemas/project.json"
 
-type: library
+layer: library
 language: python
 tags: ["app"]
 
@@ -10,7 +10,7 @@ tags: ["app"]
 id: "fastapi-ai"
 
 project:
-  name: "fastapi-ai"
+  title: "fastapi-ai"
   description: "_CHANGE_ME_DESCRIPTION_"
 
 # Since this project can infer task from script (package.json), then you can run any script as moon task.
@@ -109,7 +109,7 @@ tasks:
       mergeEnv: replace
       runFromWorkspaceRoot: true
       interactive: false
-      outputStyle: buffer-only-failure
+      outputStyle: stream
       runInCI: false
       cache: false
       shell: true
@@ -122,9 +122,9 @@ tasks:
         --name $DOCKER_IMAGE $DOCKER_IMAGE:$DOCKER_IMAGE_VERSION
     options:
       mergeEnv: replace
-      outputStyle: buffer-only-failure
+      outputStyle: stream
       runFromWorkspaceRoot: true
-      interactive: false
+      interactive: true
       runInCI: false
       cache: false
       shell: true
@@ -134,12 +134,12 @@ tasks:
       DOCKER_IMAGE="$(jq -r .name <$workspaceRoot'/package.json')-$project" \
       DOCKER_IMAGE_VERSION="$(jq -r .version <$workspaceRoot'/package.json')" \
       && docker run --network=host --rm -it --env-file $projectRoot/.env \
-        --entrypoint /bin/sh $DOCKER_IMAGE:$DOCKER_IMAGE_VERSION
+        --entrypoint sh $DOCKER_IMAGE:$DOCKER_IMAGE_VERSION
     options:
       mergeEnv: replace
       runFromWorkspaceRoot: true
-      outputStyle: buffer-only-failure
-      interactive: false
+      outputStyle: stream
+      interactive: true
       runInCI: false
       cache: false
       shell: true

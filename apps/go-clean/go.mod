@@ -1,8 +1,6 @@
 module go-clean
 
-go 1.25.0
-
-toolchain go1.25.1
+go 1.26.0
 
 require (
 	github.com/exaring/otelpgx v0.9.3

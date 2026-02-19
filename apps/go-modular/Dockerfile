@@ -2,14 +2,14 @@
 
 # Arguments with default value (for build).
 ARG DISTROLESS_TAG=nonroot
-ARG PLATFORM=linux/amd64
+ARG MOON_VERSION=2.0.0
 ARG NODE_VERSION=22
-ARG GO_VERSION=1.25
+ARG GO_VERSION=1.26
 
 # -----------------------------------------------------------------------------
 # Base image for building the Golang app.
 # -----------------------------------------------------------------------------
-FROM --platform=${PLATFORM} golang:${GO_VERSION}-trixie AS base_go
+FROM golang:${GO_VERSION}-trixie AS base_go
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 COREPACK_INTEGRITY_KEYS=0
 ENV FNM_PATH=/usr/bin PNPM_HOME=/pnpm HOME=/root
 ENV PATH="$HOME/.local/share/fnm:$PNPM_HOME:$PATH"
@@ -52,7 +52,7 @@ RUN set -eux; \
     chmod +x /usr/bin/tini
 
 # Install Moonrepo CLI
-RUN curl -fsSL https://moonrepo.dev/install/moon.sh | bash
+RUN bash <(curl -fsSL https://moonrepo.dev/install/moon.sh) $MOON_VERSION
 
 WORKDIR /srv
 
@@ -68,7 +68,7 @@ COPY --link . .
 SHELL ["/usr/bin/bash", "-c"]
 ENV BASH_ENV=$HOME/.bashrc
 
-RUN moon docker scaffold go-modular
+RUN MOON_LOG=error moon docker scaffold go-modular
 
 # -----------------------------------------------------------------------------
 # Install dependencies and build the application.
@@ -97,7 +97,7 @@ RUN --mount=type=cache,target=/gomod-cache --mount=type=cache,target=/go-cache m
 # -----------------------------------------------------------------------------
 # Production image, copy build output files and run the application (runner).
 # -----------------------------------------------------------------------------
-FROM --platform=${PLATFORM} gcr.io/distroless/cc-debian12:${DISTROLESS_TAG} AS runner
+FROM gcr.io/distroless/cc-debian12:${DISTROLESS_TAG} AS runner
 
 # ----- Read application environment variables --------------------------------
 

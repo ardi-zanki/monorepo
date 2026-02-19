@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # Arguments with default value (for build).
-ARG PLATFORM=linux/amd64
+ARG MOON_VERSION=2.0.0
 ARG NODE_VERSION=22
 
 FROM busybox:1.37-glibc AS glibc
@@ -10,7 +10,7 @@ FROM joseluisq/static-web-server:2 AS httpd
 # -----------------------------------------------------------------------------
 # Base image with pnpm package manager.
 # -----------------------------------------------------------------------------
-FROM --platform=${PLATFORM} node:${NODE_VERSION}-bookworm-slim AS base
+FROM node:${NODE_VERSION}-trixie-slim AS base
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 COREPACK_INTEGRITY_KEYS=0
 ENV LEFTHOOK=0 CI=true PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=true
 ENV MOON_TOOLCHAIN_FORCE_GLOBALS=1 MOON_INSTALL_DIR="/usr/bin" PNPM_HOME="/pnpm"
@@ -21,14 +21,14 @@ WORKDIR /srv
 # Install system dependencies and moon cli
 RUN apt-get update && apt-get -yqq --no-install-recommends install curl tini jq ca-certificates
 RUN apt -yqq purge && update-ca-certificates && apt -yqq autoremove && apt -yqq clean
-RUN curl -fsSL https://moonrepo.dev/install/moon.sh | bash
+RUN bash <(curl -fsSL https://moonrepo.dev/install/moon.sh) $MOON_VERSION
 
 # -----------------------------------------------------------------------------
 # Scaffold the specific project.
 # -----------------------------------------------------------------------------
 FROM base AS skeleton
 COPY --link . .
-RUN moon docker scaffold {{ package_name | kebab_case }}
+RUN MOON_LOG=error moon docker scaffold {{ package_name | kebab_case }}
 
 # -----------------------------------------------------------------------------
 # Install dependencies and build the application.
@@ -36,7 +36,6 @@ RUN moon docker scaffold {{ package_name | kebab_case }}
 FROM base AS builder
 
 # Copy workspace skeleton
-# COPY --from=skeleton /root/.proto /root/.proto
 COPY --from=skeleton /srv/.moon/docker/workspace .
 
 # Install toolchain and dependencies
@@ -51,7 +50,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store moon run {{ package_name | keb
 # -----------------------------------------------------------------------------
 # Production image, copy build output files and run the application (runner).
 # -----------------------------------------------------------------------------
-FROM --platform=${PLATFORM} gcr.io/distroless/base-nossl-debian12 AS runner
+FROM gcr.io/distroless/base-nossl-debian12 AS runner
 
 # ----- Read application environment variables --------------------------------
 
