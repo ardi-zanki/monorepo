@@ -128,11 +128,10 @@ tasks:
       shell: true
 
   install-mockery:
-    command: "$workspaceRoot/.moon/scripts/install_mockery.sh v3.5.1"
+    command: "./scripts/install_mockery.sh v3.5.1"
     options:
+      runFromWorkspaceRoot: true
       shell: true
-      outputStyle: buffer-only-failure
-      interactive: true
       runInCI: false
       cache: false
 

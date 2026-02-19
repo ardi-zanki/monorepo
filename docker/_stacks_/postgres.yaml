@@ -15,9 +15,7 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: securedb
-      # Uncomment to enable additional databases and schemas
-      # POSTGRES_EXTRA_DB: myapp,testdb
-      # POSTGRES_SCHEMAS: postgres:reference,myapp:reference
+      PG_DATABASES: strapi,testdb # Create additional databases
     command: ['postgres', '-c', 'config_file=/etc/postgresql/postgresql.conf', '-c', 'hba_file=/etc/postgresql/pg_hba.conf']
     shm_size: 128m # set shared memory limit
     mem_limit: 256m # set memory limit

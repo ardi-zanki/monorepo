@@ -76,8 +76,9 @@ tasks:
     command: "go run ./cmd/ seed"
 
   install-mockery:
-    command: "../../.moon/scripts/install_mockery.sh v3.5.1"
+    command: "./scripts/install_mockery.sh v3.5.1"
     options:
+      runFromWorkspaceRoot: true
       shell: true
       runInCI: false
       cache: false
