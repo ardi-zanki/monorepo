@@ -1,9 +1,9 @@
 # https://moonrepo.dev/docs/config/workspace
-## yaml-language-server: $schema=https://moonrepo.dev/schemas/workspace.json
+# yaml-language-server: $schema=https://moonrepo.dev/schemas/workspace.json
 $schema: 'https://moonrepo.dev/schemas/workspace.json'
 
 # Require a specific version of moon while running commands, otherwise fail.
-versionConstraint: '>=2.0.0'
+versionConstraint: '>=2.1.0'
 
 vcs:
   client: git
@@ -25,8 +25,8 @@ pipeline:
 docker:
   scaffold:
     configsPhaseGlobs:
-    - '**/.npmrc'
-    - '**/package.json'
+      - '**/.npmrc'
+      - '**/package.json'
   prune:
     deleteVendorDirectories: false
     installToolchainDependencies: true

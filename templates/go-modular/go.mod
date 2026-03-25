@@ -1,6 +1,6 @@
 module {{ package_name | kebab_case }}
 
-go 1.26.0
+go 1.26.1
 
 toolchain go1.26.0
 

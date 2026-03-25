@@ -1,8 +1,9 @@
 # syntax=docker/dockerfile:1.7
 
 # Arguments with default value (for build).
-ARG MOON_VERSION=2.0.0
+ARG MOON_VERSION=2.1.1
 ARG NODE_VERSION=22
+ARG DISTROLESS_TAG=nonroot
 
 FROM busybox:1.37-glibc AS glibc
 
@@ -37,7 +38,7 @@ ARG NODE_ENV=production
 ENV NODE_ENV=$NODE_ENV NEXT_TELEMETRY_DISABLED=1
 
 # Copy workspace skeleton
-COPY --from=skeleton /srv/.moon/docker/workspace .
+COPY --from=skeleton /srv/.moon/docker/configs .
 
 # Install toolchain and dependencies
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store moon docker setup
@@ -74,13 +75,10 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm dlx \
 # -----------------------------------------------------------------------------
 # Production image, copy build output files and run the application (runner).
 # -----------------------------------------------------------------------------
-FROM gcr.io/distroless/nodejs${NODE_VERSION}-debian12
+FROM gcr.io/distroless/nodejs${NODE_VERSION}-debian13:${DISTROLESS_TAG} AS runner
 
-# ----- Read application environment variables --------------------------------
-
+# Read application environment variables
 ARG DATABASE_URL SMTP_HOST SMTP_PORT SMTP_USERNAME SMTP_PASSWORD SMTP_EMAIL_FROM
-
-# ----- Read application environment variables --------------------------------
 
 # Copy the build output files from the installer stage.
 COPY --from=pruner --chown=nonroot:nonroot /srv /srv

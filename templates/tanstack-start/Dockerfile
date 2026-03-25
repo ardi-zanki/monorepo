@@ -1,8 +1,9 @@
 # syntax=docker/dockerfile:1.7
 
 # Arguments with default value (for build).
-ARG MOON_VERSION=2.0.0
+ARG MOON_VERSION=2.1.1
 ARG NODE_VERSION=22
+ARG DISTROLESS_TAG=nonroot
 
 FROM busybox:1.37-glibc AS glibc
 
@@ -35,7 +36,7 @@ RUN MOON_LOG=error moon docker scaffold {{ package_name | kebab_case }}
 FROM base AS builder
 
 # Copy workspace skeleton
-COPY --from=skeleton /srv/.moon/docker/workspace .
+COPY --from=skeleton /srv/.moon/docker/configs .
 
 # Install toolchain and dependencies
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store moon docker setup
@@ -72,7 +73,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod \
 # -----------------------------------------------------------------------------
 # Production image (runner).
 # -----------------------------------------------------------------------------
-FROM gcr.io/distroless/nodejs${NODE_VERSION}-debian12
+FROM gcr.io/distroless/nodejs${NODE_VERSION}-debian13:${DISTROLESS_TAG} AS runner
 
 # Copy the build output files from the pruner stage.
 COPY --from=pruner --chown=nonroot:nonroot /srv /srv

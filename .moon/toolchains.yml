@@ -1,16 +1,18 @@
 # https://moonrepo.dev/docs/config/toolchain
-## yaml-language-server: $schema=https://moonrepo.dev/schemas/toolchain.json
+# yaml-language-server: $schema=https://moonrepo.dev/schemas/toolchain.json
 $schema: 'https://moonrepo.dev/schemas/toolchain.json'
 
 proto:
   version: 0.55.2
 
 go:
-  version: '1.26'
+  version: '1.26.1'
+  installDependencies: true
 
 node:
   version: '22.22'
-  syncVersionManagerConfig: null  # Sync `node.version` to a 3rd-party version manager's config file.
+  installDependencies: true
+  syncVersionManagerConfig: null            # Sync `node.version` to a 3rd-party version manager's config file.
 
 javascript:
   packageManager: pnpm                      # Defines which package manager to utilize.
@@ -26,6 +28,8 @@ pnpm:
 
 unstable_python:
   version: '3.14'
+  installDependencies: true
+  packageManager: 'uv'
 
 unstable_uv:
   version: 0.8.17

@@ -1,8 +1,6 @@
 module go-modular
 
-go 1.26.0
-
-toolchain go1.26.0
+go 1.26.1
 
 require (
 	github.com/alexliesenfeld/health v0.8.1

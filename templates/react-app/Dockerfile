@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # Arguments with default value (for build).
-ARG MOON_VERSION=2.0.0
+ARG MOON_VERSION=2.1.1
 ARG NODE_VERSION=22
 
 FROM busybox:1.37-glibc AS glibc
@@ -36,7 +36,7 @@ RUN MOON_LOG=error moon docker scaffold {{ package_name | kebab_case }}
 FROM base AS builder
 
 # Copy workspace skeleton
-COPY --from=skeleton /srv/.moon/docker/workspace .
+COPY --from=skeleton /srv/.moon/docker/configs .
 
 # Install toolchain and dependencies
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store moon docker setup
@@ -52,11 +52,8 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store moon run {{ package_name | keb
 # -----------------------------------------------------------------------------
 FROM gcr.io/distroless/base-nossl-debian12 AS runner
 
-# ----- Read application environment variables --------------------------------
-
+# Read application environment variables
 ARG VITE_API_URL VITE_BASE_URL
-
-# ----- Read application environment variables --------------------------------
 
 # Copy the build output files from the installer stage.
 COPY --from=builder --chown=nonroot:nonroot /srv/apps/{{ package_name | kebab_case }}/build/client /srv
@@ -65,16 +62,6 @@ COPY --from=builder --chown=nonroot:nonroot /srv/apps/{{ package_name | kebab_ca
 COPY --from=skeleton /srv/docker/sws-spa.toml /etc/sws.toml
 COPY --from=httpd /static-web-server /usr/bin/sws
 COPY --from=base /usr/bin/tini /usr/bin/tini
-
-# Copy some necessary system utilities from previous stage (~7MB).
-# To enhance security, consider avoiding the copying of sysutils.
-# COPY --from=glibc /usr/bin/env /usr/bin/env
-# COPY --from=glibc /bin/clear /bin/clear
-# COPY --from=glibc /bin/mkdir /bin/mkdir
-# COPY --from=glibc /bin/which /bin/which
-# COPY --from=glibc /bin/cat /bin/cat
-# COPY --from=glibc /bin/ls /bin/ls
-# COPY --from=glibc /bin/sh /bin/sh
 
 # Define the log level, host and port to listen on.
 ARG SERVER_LOG_LEVEL=info SERVER_HOST=0.0.0.0 SERVER_PORT={{ port_number }}

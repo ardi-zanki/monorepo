@@ -33,18 +33,18 @@ Short brief description about the project.
 
 ### Available Commands
 
-| Command                                          | Description                                                            |
-|--------------------------------------------------|------------------------------------------------------------------------|
-| `moon fastapi-ai:sync`                           | Synchronize project dependencies using uv package manager              |
-| `moon fastapi-ai:dev`                            | Start FastAPI development server with hot reload on port 8080          |
-| `moon fastapi-ai:start`                          | Launch FastAPI production server on port 8080                          |
-| `moon fastapi-ai:migrate`                        | Apply pending Alembic database migrations                              |
-| `moon fastapi-ai:migrate-create -- "name"`       | Create a new empty Alembic migration file with the specified name      |
-| `moon fastapi-ai:migrate-autogenerate -- "name"` | Generate an Alembic migration by detecting model changes automatically |
-| `moon fastapi-ai:migrate-down`                   | Rollback the most recent database migration                            |
-| `moon fastapi-ai:migrate-reset`                  | Reset database by rolling back all migrations (useful for clean slate) |
-| `moon fastapi-ai:seed`                           | Populate database with dummy data using the seeder script              |
-| `moon fastapi-ai:check-in-dance`                 | Complete setup: sync, migrate, and seed in sequence                    |
+| Command                                              | Description                                                            |
+|------------------------------------------------------|------------------------------------------------------------------------|
+| `moon run fastapi-ai:sync`                           | Synchronize project dependencies using uv package manager              |
+| `moon run fastapi-ai:dev`                            | Start FastAPI development server with hot reload on port 8080          |
+| `moon run fastapi-ai:start`                          | Launch FastAPI production server on port 8080                          |
+| `moon run fastapi-ai:migrate`                        | Apply pending Alembic database migrations                              |
+| `moon run fastapi-ai:migrate-create -- "name"`       | Create a new empty Alembic migration file with the specified name      |
+| `moon run fastapi-ai:migrate-autogenerate -- "name"` | Generate an Alembic migration by detecting model changes automatically |
+| `moon run fastapi-ai:migrate-down`                   | Rollback the most recent database migration                            |
+| `moon run fastapi-ai:migrate-reset`                  | Reset database by rolling back all migrations (useful for clean slate) |
+| `moon run fastapi-ai:seed`                           | Populate database with dummy data using the seeder script              |
+| `moon run fastapi-ai:check-in-dance`                 | Complete setup: sync, migrate, and seed in sequence                    |
 
 ### Running the Application
 

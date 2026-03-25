@@ -1,8 +1,9 @@
 # syntax=docker/dockerfile:1.7
 
 # Arguments with default value (for build).
-ARG MOON_VERSION=2.0.0
+ARG MOON_VERSION=2.1.1
 ARG NODE_VERSION=22
+ARG DISTROLESS_TAG=nonroot
 
 FROM busybox:1.37-glibc AS glibc
 
@@ -35,7 +36,7 @@ RUN MOON_LOG=error moon docker scaffold {{ package_name | kebab_case }}
 FROM base AS builder
 
 # Copy workspace skeleton
-COPY --from=skeleton /srv/.moon/docker/workspace .
+COPY --from=skeleton /srv/.moon/docker/configs .
 
 # Install toolchain and dependencies
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store moon docker setup
@@ -58,6 +59,7 @@ FROM base AS pruner
 COPY --from=builder /srv/node_modules /srv/node_modules
 COPY --from=builder /srv/package.json /srv/package.json
 COPY --from=builder /srv/pnpm-lock.yaml /srv/pnpm-lock.yaml
+COPY --from=builder /srv/pnpm-workspace.yaml /srv/pnpm-workspace.yaml
 
 # Only copy the require files from builder stage
 COPY --from=builder /srv/apps/{{ package_name | kebab_case }}/node_modules /srv/apps/{{ package_name | kebab_case }}/node_modules
@@ -67,7 +69,7 @@ COPY --from=builder /srv/apps/{{ package_name | kebab_case }}/build /srv/apps/{{
 
 # Cleanup uncessary files and set executable permissions for the server.
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod \
-    --frozen-lockfile --ignore-scripts && pnpm prune --prod \
+    --no-frozen-lockfile --ignore-scripts && pnpm prune --prod \
     --ignore-scripts && pnpm dlx clean-modules clean --yes \
     "!**/sharp/**" "!**/@repo/**"
 
@@ -76,13 +78,10 @@ RUN chmod +x /srv/apps/{{ package_name | kebab_case }}/server.mjs
 # -----------------------------------------------------------------------------
 # Production image, copy build output files and run the application (runner).
 # -----------------------------------------------------------------------------
-FROM gcr.io/distroless/nodejs${NODE_VERSION}-debian12
+FROM gcr.io/distroless/nodejs${NODE_VERSION}-debian13:${DISTROLESS_TAG} AS runner
 
-# ----- Read application environment variables --------------------------------
-
+# Read application environment variables
 ARG VITE_API_URL VITE_BASE_URL
-
-# ----- Read application environment variables --------------------------------
 
 # Copy the build output files from the installer stage.
 COPY --from=pruner --chown=nonroot:nonroot /srv /srv

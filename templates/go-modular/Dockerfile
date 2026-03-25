@@ -2,7 +2,7 @@
 
 # Arguments with default value (for build).
 ARG DISTROLESS_TAG=nonroot
-ARG MOON_VERSION=2.0.0
+ARG MOON_VERSION=2.1.1
 ARG NODE_VERSION=22
 ARG GO_VERSION=1.26
 
@@ -14,7 +14,7 @@ ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 COREPACK_INTEGRITY_KEYS=0
 ENV FNM_PATH=/usr/bin PNPM_HOME=/pnpm HOME=/root
 ENV PATH="$HOME/.local/share/fnm:$PNPM_HOME:$PATH"
 ENV PATH="/root/.moon/bin:$PATH"
-ARG NODE_VERSION=22.18
+ARG NODE_VERSION=22
 
 # Install system dependencies
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
@@ -81,7 +81,7 @@ RUN go env -w GOCACHE=/go-cache
 RUN go env -w GOMODCACHE=/gomod-cache
 
 # Copy workspace skeleton
-COPY --from=skeleton /srv/.moon/docker/workspace .
+COPY --from=skeleton /srv/.moon/docker/configs .
 
 # Install toolchain and dependencies
 RUN --mount=type=cache,target=/gomod-cache --mount=type=cache,target=/go-cache moon setup
@@ -99,8 +99,7 @@ RUN --mount=type=cache,target=/gomod-cache --mount=type=cache,target=/go-cache m
 # -----------------------------------------------------------------------------
 FROM gcr.io/distroless/cc-debian12:${DISTROLESS_TAG} AS runner
 
-# ----- Read application environment variables --------------------------------
-
+# Read application environment variables
 ARG APP_BASE_URL
 ARG CORS_CREDENTIALS
 ARG CORS_MAX_AGE
@@ -139,8 +138,6 @@ ARG OTEL_EXPORTER_OTLP_PROTOCOL
 ARG OTEL_INSECURE_MODE
 ARG OTEL_SERVICE_NAME
 ARG OTEL_TRACING_SAMPLE_RATE
-
-# ----- Read application environment variables --------------------------------
 
 # Copy the build output files and necessary utilities from previous stage.
 COPY --from=builder --chown=nonroot:nonroot /srv/apps/{{ package_name | kebab_case }}/build/release/{{ package_name | kebab_case }} /srv/{{ package_name | kebab_case }}

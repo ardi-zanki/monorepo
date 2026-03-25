@@ -28,7 +28,7 @@ jobs:
       DART_SASS_VERSION: 1.92.1
       GO_VERSION: 1.26.0
       HUGO_VERSION: 0.150.0
-      NODE_VERSION: 22.18.0
+      NODE_VERSION: 22.22.0
       TZ: Asia/Jakarta
     steps:
       - name: Checkout
