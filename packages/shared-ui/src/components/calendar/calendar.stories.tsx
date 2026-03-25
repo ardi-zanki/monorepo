@@ -1,4 +1,4 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { consola } from "consola";
 import { addDays, format } from "date-fns";
@@ -48,7 +48,7 @@ export const SimpleCalendar: StoryObj = {
 				mode="single"
 				selected={date}
 				onSelect={setDate}
-				className="w-full max-w-[250px] rounded-md border shadow"
+				className="w-full max-w-62.5 rounded-md border shadow"
 			/>
 		);
 	},
@@ -85,7 +85,7 @@ export const DatePickerWithForm: StoryObj = {
 											<Button
 												variant="outline"
 												className={clx(
-													"w-[240px] pl-3 text-left font-normal",
+													"w-60 pl-3 text-left font-normal",
 													!field.value && "text-muted-foreground",
 												)}
 											>

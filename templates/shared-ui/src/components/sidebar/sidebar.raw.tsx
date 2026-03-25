@@ -55,7 +55,7 @@ const Sidebar = React.forwardRef<
 						style={
 							{
 								"--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-							} as React.CSSProperties
+							} as any /** as React.CSSProperties */
 						}
 						side={side}
 					>

@@ -10,9 +10,7 @@
         "GOFLAGS": "-tags=prod,debug"
     },
     "gopls": {
-        "buildFlags": [
-            "-tags=prod,debug"
-        ]
+        "buildFlags": ["-tags=prod,debug"]
     },
     "go.formatTool": "gofmt",
     "go.lintTool": "golangci-lint",
@@ -27,19 +25,10 @@
     "tailwindCSS.experimental.classRegex": [
         // @ref: https://www.tailwind-variants.org/docs/getting-started
         // @ref: https://github.com/paolotiu/tailwind-intellisense-regex-list
-        [
-            "(?:cn|cx|cva|clx|tv)\\(([^;]*)[\\);]",
-            "[`'\"`]([^'\"`;]*)[`'\"`]"
-        ],
-        [
-            "classList={{([^;]*)}}",
-            "\\s*?[\"'`]([^\"'`]*).*?:"
-        ]
+        ["(?:cn|cx|cva|clx|tv)\\(([^;]*)[\\);]", "[`'\"`]([^'\"`;]*)[`'\"`]"],
+        ["classList={{([^;]*)}}", "\\s*?[\"'`]([^\"'`]*).*?:"]
     ],
-    "tailwindCSS.files.exclude": [
-        "**/.github/**",
-        "**/*.{md,js,ts,json}"
-    ],
+    "tailwindCSS.files.exclude": ["**/.github/**", "**/*.{md,js,ts,json}"],
     "[astro]": {
         "editor.defaultFormatter": "biomejs.biome"
     },

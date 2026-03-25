@@ -8,7 +8,6 @@ const nextConfig = {
 	poweredByHeader: false,
 	productionBrowserSourceMaps: false,
 	images: { remotePatterns: [{ protocol: "https", hostname: "**" }] },
-	eslint: { ignoreDuringBuilds: isProduction },
 	typescript: { ignoreBuildErrors: isProduction },
 	logging: { fetches: { fullUrl: true } },
 };

@@ -19,6 +19,7 @@
         "name": "next"
       }
     ],
+    "preserveSymlinks": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,

@@ -8,5 +8,5 @@
 	"install": "never",
 	"packageManager": "pnpm",
 	"silent": false,
-	"reject": []
+	"reject": ["react-resizable-panels"]
 }

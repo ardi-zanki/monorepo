@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { consola } from "consola";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { Button } from "../button/button";
 import {
 	Form,
@@ -32,10 +32,10 @@ import {
 
 const FormSchema = z.object({
 	projectName: z.string({
-		error: "Project name is required.",
+		required_error: "Project name is required.",
 	}),
 	framework: z.string({
-		error: "Please select a framework.",
+		required_error: "Please select a framework.",
 	}),
 });
 

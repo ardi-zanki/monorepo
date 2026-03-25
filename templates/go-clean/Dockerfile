@@ -114,7 +114,7 @@ ARG OTEL_EXPORTER_OTLP_ENDPOINT
 ARG SERVICE_NAME
 ARG TRACING_SAMPLE_RATE
 
-# Copy the build output files and necessary utilities from previous stage.
+# Copy build output files and required binaries from previous stage
 COPY --from=builder --chown=nonroot:nonroot /srv/apps/{{ package_name | kebab_case }}/build/{{ package_name | kebab_case }} /srv/{{ package_name | kebab_case }}
 COPY --from=builder --chmod=775 /usr/bin/tini /usr/bin/tini
 

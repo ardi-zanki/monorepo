@@ -36,5 +36,5 @@ function LoginPage() {
 				</button>
 			</form>
 		</main>
-	)
+	);
 }

@@ -5,12 +5,13 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 layer: application
 language: typescript
 stack: frontend
-tags: ['app']
+tags: ['mobile']
 
+# Overrides the name (identifier) of the project
 id: '{{ package_name | kebab_case }}'
 
 project:
-  name: {{ package_name | kebab_case }}
+  title: {{ package_name | kebab_case }}
   description: '{{ package_description }}'
 
 tasks:

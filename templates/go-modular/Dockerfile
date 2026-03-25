@@ -139,7 +139,7 @@ ARG OTEL_INSECURE_MODE
 ARG OTEL_SERVICE_NAME
 ARG OTEL_TRACING_SAMPLE_RATE
 
-# Copy the build output files and necessary utilities from previous stage.
+# Copy build output files and required binaries from previous stage
 COPY --from=builder --chown=nonroot:nonroot /srv/apps/{{ package_name | kebab_case }}/build/release/{{ package_name | kebab_case }} /srv/{{ package_name | kebab_case }}
 COPY --from=builder --chmod=775 /usr/bin/tini /usr/bin/tini
 

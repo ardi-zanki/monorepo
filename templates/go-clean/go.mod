@@ -2,8 +2,6 @@ module {{ package_name | kebab_case }}
 
 go 1.26.1
 
-toolchain go1.26.0
-
 require (
 	github.com/exaring/otelpgx v0.9.3
 	github.com/golang-jwt/jwt/v5 v5.2.2

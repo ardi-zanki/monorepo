@@ -4,24 +4,45 @@
 ARG MOON_VERSION=2.1.1
 ARG NODE_VERSION=22
 
-FROM busybox:1.37-glibc AS glibc
 FROM joseluisq/static-web-server:2 AS httpd
 
 # -----------------------------------------------------------------------------
 # Base image with pnpm package manager.
 # -----------------------------------------------------------------------------
 FROM node:${NODE_VERSION}-trixie-slim AS base
-ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 COREPACK_INTEGRITY_KEYS=0
-ENV LEFTHOOK=0 CI=true PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=true
-ENV MOON_TOOLCHAIN_FORCE_GLOBALS=1 MOON_INSTALL_DIR="/usr/bin" PNPM_HOME="/pnpm"
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 COREPACK_INTEGRITY_KEYS=0 DO_NOT_TRACK=1
+ENV NODE_VERSION=$NODE_VERSION PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=true PNPM_HOME="/pnpm"
+ENV CI=true MOON_TOOLCHAIN_FORCE_GLOBALS=1 MOON_INSTALL_DIR="/usr/bin"
 ENV PATH="$PNPM_HOME:$MOON_INSTALL_DIR:$PATH"
-RUN corepack enable && corepack prepare pnpm@latest-10 --activate
-WORKDIR /srv
 
-# Install system dependencies and moon cli
-RUN apt-get update && apt-get -yqq --no-install-recommends install curl tini jq ca-certificates
-RUN apt -yqq purge && update-ca-certificates && apt -yqq autoremove && apt -yqq clean
-RUN bash <(curl -fsSL https://moonrepo.dev/install/moon.sh) $MOON_VERSION
+# Install and enable PNPM via corepack
+RUN corepack enable && corepack prepare pnpm@latest-10 --activate
+
+# Install system dependencies (optional tools for building and debugging)
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean && apt-get update -y \
+    && apt-get -yqq --no-install-recommends install build-essential curl \
+       inotify-tools pkg-config libssl-dev git unzip ca-certificates jq \
+    && update-ca-certificates
+
+# Add tini for signal handling and zombie reaping
+RUN set -eux; \
+    TINI_DOWNLOAD_URL="https://github.com/krallin/tini/releases/download/v0.19.0" \
+    ARCH="$(dpkg --print-architecture)"; \
+    case "${ARCH}" in \
+      amd64|x86_64) TINI_BIN_URL="${TINI_DOWNLOAD_URL}/tini" ;; \
+      arm64|aarch64) TINI_BIN_URL="${TINI_DOWNLOAD_URL}/tini-arm64" ;; \
+      *) echo "unsupported architecture: ${ARCH}"; exit 1 ;; \
+    esac; \
+    curl -fsSL "${TINI_BIN_URL}" -o /usr/bin/tini; \
+    chmod +x /usr/bin/tini
+
+# Install Moon CLI
+RUN bash -c 'bash <(curl -fsSL https://moonrepo.dev/install/moon.sh) "$MOON_VERSION"'
+
+WORKDIR /srv
 
 # -----------------------------------------------------------------------------
 # Scaffold the specific project.
@@ -55,10 +76,8 @@ FROM gcr.io/distroless/base-nossl-debian12 AS runner
 # Read application environment variables
 ARG VITE_API_URL VITE_BASE_URL
 
-# Copy the build output files from the installer stage.
+# Copy build output files and required binaries from previous stage
 COPY --from=builder --chown=nonroot:nonroot /srv/apps/{{ package_name | kebab_case }}/build/client /srv
-
-# Copy the required binaries and configuration file.
 COPY --from=skeleton /srv/docker/sws-spa.toml /etc/sws.toml
 COPY --from=httpd /static-web-server /usr/bin/sws
 COPY --from=base /usr/bin/tini /usr/bin/tini

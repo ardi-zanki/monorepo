@@ -9,11 +9,12 @@
     "lib": [
       "DOM",
       "DOM.Iterable",
-      "ES2023"
+      "ESNext"
     ],
     "module": "esnext",
     "moduleResolution": "bundler",
     "noEmit": true,
+    "preserveSymlinks": true,
     "resolveJsonModule": true,
     "rootDirs": [
       ".",

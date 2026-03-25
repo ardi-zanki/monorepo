@@ -1,10 +1,10 @@
-import React from "react";
 import {
 	fireEvent,
 	renderAsync,
 	screen,
 	waitFor,
 } from "@testing-library/react-native";
+import React from "react";
 
 import { DashboardPanel } from "#/features/auth/DashboardPanel";
 import { LoginForm } from "#/features/auth/LoginForm";

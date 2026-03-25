@@ -2,8 +2,6 @@ module {{ package_name | kebab_case }}
 
 go 1.26.1
 
-toolchain go1.26.0
-
 require (
 	github.com/alexliesenfeld/health v0.8.1
 	github.com/bdpiprava/scalar-go v0.12.1

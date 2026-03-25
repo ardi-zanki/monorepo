@@ -11,7 +11,7 @@ tags: ['app']
 id: '{{ package_name | kebab_case }}'
 
 project:
-  name: '{{ package_name | kebab_case }}'
+  title: '{{ package_name | kebab_case }}'
   description: '{{ package_description }}'
 
 env:
@@ -52,7 +52,7 @@ tasks:
       cache: true
 
   build-standalone:
-    command: >
+    script: >
       rm -fr $projectRoot/dist
       && mkdir -p $projectRoot/dist/{.next,public}
       && cp -r .next/standalone/apps/{{ package_name | kebab_case }}/ dist
@@ -74,7 +74,7 @@ tasks:
       mergeEnv: replace
       runFromWorkspaceRoot: true
       interactive: false
-      outputStyle: buffer-only-failure
+      outputStyle: stream
       runInCI: false
       cache: false
       shell: true
@@ -87,9 +87,9 @@ tasks:
         --name $DOCKER_IMAGE $DOCKER_IMAGE:$DOCKER_IMAGE_VERSION
     options:
       mergeEnv: replace
-      outputStyle: buffer-only-failure
+      outputStyle: stream
       runFromWorkspaceRoot: true
-      interactive: false
+      interactive: true
       runInCI: false
       cache: false
       shell: true
@@ -103,8 +103,8 @@ tasks:
     options:
       mergeEnv: replace
       runFromWorkspaceRoot: true
-      outputStyle: buffer-only-failure
-      interactive: false
+      outputStyle: stream
+      interactive: true
       runInCI: false
       cache: false
       shell: true

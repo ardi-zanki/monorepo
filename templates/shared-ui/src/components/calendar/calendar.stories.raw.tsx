@@ -6,7 +6,7 @@ import * as Lucide from "lucide-react";
 import * as React from "react";
 import type { DateRange } from "react-day-picker";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { clx } from "../../utils";
 import { Button } from "../button/button";
 import {
@@ -56,7 +56,7 @@ export const SimpleCalendar: StoryObj = {
 
 const FormSchema = z.object({
 	dob: z.date({
-		error: "A date of birth is required.",
+		required_error: "A date of birth is required.",
 	}),
 });
 

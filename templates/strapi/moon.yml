@@ -14,7 +14,7 @@ tags: ['app']
 id: '{{ package_name | kebab_case }}'
 
 project:
-  name: {{ package_name | kebab_case }}
+  title: {{ package_name | kebab_case }}
   description: '{{ package_description }}'
 
 env:
@@ -45,7 +45,7 @@ tasks:
       mergeEnv: replace
       runFromWorkspaceRoot: true
       interactive: false
-      outputStyle: buffer-only-failure
+      outputStyle: stream
       runInCI: false
       cache: false
       shell: true
@@ -55,13 +55,12 @@ tasks:
       DOCKER_IMAGE="$(jq -r .name <$workspaceRoot'/package.json')-$project" \
       DOCKER_IMAGE_VERSION="$(jq -r .version <$workspaceRoot'/package.json')" \
       && docker run --network=host --rm -it --env-file $projectRoot/.env \
-        -v $projectRoot/_data:/srv/_data --entrypoint sh \
-        $DOCKER_IMAGE:$DOCKER_IMAGE_VERSION
+        --name $DOCKER_IMAGE $DOCKER_IMAGE:$DOCKER_IMAGE_VERSION
     options:
       mergeEnv: replace
-      outputStyle: buffer-only-failure
+      outputStyle: stream
       runFromWorkspaceRoot: true
-      interactive: false
+      interactive: true
       runInCI: false
       cache: false
       shell: true
@@ -71,13 +70,12 @@ tasks:
       DOCKER_IMAGE="$(jq -r .name <$workspaceRoot'/package.json')-$project" \
       DOCKER_IMAGE_VERSION="$(jq -r .version <$workspaceRoot'/package.json')" \
       && docker run --network=host --rm -it --env-file $projectRoot/.env \
-        -v $projectRoot/_data:/srv/_data --entrypoint sh \
-        $DOCKER_IMAGE:$DOCKER_IMAGE_VERSION
+        --entrypoint sh $DOCKER_IMAGE:$DOCKER_IMAGE_VERSION
     options:
       mergeEnv: replace
       runFromWorkspaceRoot: true
-      outputStyle: buffer-only-failure
-      interactive: false
+      outputStyle: stream
+      interactive: true
       runInCI: false
       cache: false
       shell: true
