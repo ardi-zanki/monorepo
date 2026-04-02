@@ -4,24 +4,24 @@ import tailwindcss from "@tailwindcss/vite";
 import { env, isProduction } from "std-env";
 import { defineConfig } from "vite";
 import devtoolsJson from "vite-plugin-devtools-json";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 // Check if the current environment is CI or test environment
 const isTestOrStorybook = env.VITEST || process.argv[1]?.includes("storybook");
 
 export default defineConfig(({ isSsrBuild }) => ({
 	envPrefix: "VITE_" /* Prefix for environment variables */,
-	plugins: [
-		tailwindcss(),
-		!isTestOrStorybook && reactRouter(),
-		tsconfigPaths(),
-		devtoolsJson(),
-	],
+	plugins: [tailwindcss(), !isTestOrStorybook && reactRouter(), devtoolsJson()],
 	server: { port: {{ port_number }}, host: false },
 	publicDir: resolve("public"),
 	optimizeDeps: {
 		// Do not optimize internal workspace dependencies.
 		exclude: ["@repo/shared-ui"],
+	},
+	resolve: {
+		alias: {
+			"#": resolve("./app"),
+		},
+		tsconfigPaths: true,
 	},
 	build: {
 		manifest: true,
@@ -29,8 +29,6 @@ export default defineConfig(({ isSsrBuild }) => ({
 		chunkSizeWarningLimit: 1024 * 4,
 		reportCompressedSize: false,
 		minify: isProduction,
-		rollupOptions: isSsrBuild ? { input: "./server/app.ts" } : undefined,
-		terserOptions: { format: { comments: false } },
+		rolldownOptions: isSsrBuild ? { input: "./server/app.ts" } : undefined,
 	},
-	esbuild: { legalComments: "none" },
 }));

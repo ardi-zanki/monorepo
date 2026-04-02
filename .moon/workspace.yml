@@ -2,37 +2,34 @@
 # yaml-language-server: $schema=https://moonrepo.dev/schemas/workspace.json
 $schema: 'https://moonrepo.dev/schemas/workspace.json'
 
+# Require a specific version of moon while running commands, otherwise fail.
+versionConstraint: '>=2.1.0'
+
 vcs:
-  manager: 'git'
+  client: git
   provider: gitlab
-  defaultBranch: 'main'
+  defaultBranch: main
   # @see: https://moonrepo.dev/docs/config/workspace#hooks
   hooks:
     pre-commit:
-      - 'moon run :format --affected --status=all'
-      - 'moon run :lint --affected --status=staged'
-  syncHooks: false
+      - moon run :format --affected --status=all
+      - moon run :lint --affected --status=staged
+  sync: false
 
 hasher:
   optimization: performance
-
-runner:
-  cacheLifetime: '24 hours'
+telemetry: false
+pipeline:
+  cacheLifetime: 12 hours
 
 docker:
   scaffold:
-    include:
+    configsPhaseGlobs:
       - '**/.npmrc'
       - '**/package.json'
   prune:
-    installToolchainDeps: true
     deleteVendorDirectories: false
-
-# Require a specific version of moon while running commands, otherwise fail.
-versionConstraint: '>=1.41.1'
-
-# Extend and inherit an external configuration file. Must be a valid HTTPS URL or file system path.
-# extends: './shared/workspace.yml'
+    installToolchainDependencies: true
 
 # REQUIRED: A map of all projects found within the workspace, or a list or file system globs.
 # When using a map, each entry requires a unique project ID as the map key, and a file system
@@ -43,10 +40,6 @@ projects:
     - 'apps/*'
     - 'infra/*'
     - 'packages/*'
-
-# When enabled, will check for a newer moon version and send anonymous usage data to the
-# moonrepo team. This data is used to improve the quality and reliability of the tool.
-telemetry: false
 
 # Monorepo package templates to use when generating new projects.
 # @see: https://moonrepo.dev/docs/config/workspace#templates

@@ -1,9 +1,8 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Link, Tabs } from "expo-router";
 import React from "react";
-import { Pressable } from "react-native";
+import { Pressable, useColorScheme } from "react-native";
 import { useClientOnlyValue } from "#/components/useClientOnlyValue";
-import { useColorScheme } from "react-native";
 import Colors from "#/constants/colors";
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
@@ -11,7 +10,7 @@ function TabBarIcon(props: {
 	name: React.ComponentProps<typeof FontAwesome>["name"];
 	color: string;
 }) {
-	return <FontAwesome size={28} style={ { marginBottom: -3 } } {...props} />;
+	return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
 }
 
 export default function TabLayout() {
@@ -19,16 +18,16 @@ export default function TabLayout() {
 
 	return (
 		<Tabs
-			screenOptions={ {
+			screenOptions={{
 				tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
 				// Disable the static render of the header on web
 				// to prevent a hydration error in React Navigation v6.
 				headerShown: useClientOnlyValue(false, true),
-			} }
+			}}
 		>
 			<Tabs.Screen
 				name="index"
-				options={ {
+				options={{
 					title: "Home",
 					tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
 					headerRight: () => (
@@ -39,29 +38,29 @@ export default function TabLayout() {
 										name="info-circle"
 										size={22}
 										color={Colors[colorScheme ?? "light"].text}
-										style={ { marginRight: 15, opacity: pressed ? 0.5 : 1 } }
+										style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
 									/>
 								)}
 							</Pressable>
 						</Link>
 					),
-				} }
+				}}
 			/>
 			<Tabs.Screen
 				name="dashboard"
-				options={ {
+				options={{
 					title: "Dashboard",
 					tabBarIcon: ({ color }) => (
 						<TabBarIcon name="tachometer" color={color} />
 					),
-				} }
+				}}
 			/>
 			<Tabs.Screen
 				name="settings"
-				options={ {
+				options={{
 					title: "Settings",
 					tabBarIcon: ({ color }) => <TabBarIcon name="cog" color={color} />,
-				} }
+				}}
 			/>
 		</Tabs>
 	);

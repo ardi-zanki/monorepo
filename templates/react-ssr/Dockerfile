@@ -1,33 +1,54 @@
 # syntax=docker/dockerfile:1.7
 
 # Arguments with default value (for build).
-ARG PLATFORM=linux/amd64
+ARG MOON_VERSION=2.1.1
 ARG NODE_VERSION=22
-
-FROM busybox:1.37-glibc AS glibc
+ARG DISTROLESS_TAG=nonroot
 
 # -----------------------------------------------------------------------------
 # Base image with pnpm package manager.
 # -----------------------------------------------------------------------------
-FROM --platform=${PLATFORM} node:${NODE_VERSION}-bookworm-slim AS base
-ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 COREPACK_INTEGRITY_KEYS=0
-ENV LEFTHOOK=0 CI=true PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=true
-ENV MOON_TOOLCHAIN_FORCE_GLOBALS=1 MOON_INSTALL_DIR="/usr/bin" PNPM_HOME="/pnpm"
+FROM node:${NODE_VERSION}-trixie-slim AS base
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 COREPACK_INTEGRITY_KEYS=0 DO_NOT_TRACK=1
+ENV NODE_VERSION=$NODE_VERSION PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=true PNPM_HOME="/pnpm"
+ENV CI=true MOON_TOOLCHAIN_FORCE_GLOBALS=1 MOON_INSTALL_DIR="/usr/bin"
 ENV PATH="$PNPM_HOME:$MOON_INSTALL_DIR:$PATH"
-RUN corepack enable && corepack prepare pnpm@latest-10 --activate
-WORKDIR /srv
 
-# Install system dependencies and moon cli
-RUN apt-get update && apt-get -yqq --no-install-recommends install curl tini jq ca-certificates
-RUN apt -yqq purge && update-ca-certificates && apt -yqq autoremove && apt -yqq clean
-RUN curl -fsSL https://moonrepo.dev/install/moon.sh | bash
+# Install and enable PNPM via corepack
+RUN corepack enable && corepack prepare pnpm@latest-10 --activate
+
+# Install system dependencies (optional tools for building and debugging)
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean && apt-get update -y \
+    && apt-get -yqq --no-install-recommends install build-essential curl \
+       inotify-tools pkg-config libssl-dev git unzip ca-certificates jq \
+    && update-ca-certificates
+
+# Add tini for signal handling and zombie reaping
+RUN set -eux; \
+    TINI_DOWNLOAD_URL="https://github.com/krallin/tini/releases/download/v0.19.0" \
+    ARCH="$(dpkg --print-architecture)"; \
+    case "${ARCH}" in \
+      amd64|x86_64) TINI_BIN_URL="${TINI_DOWNLOAD_URL}/tini" ;; \
+      arm64|aarch64) TINI_BIN_URL="${TINI_DOWNLOAD_URL}/tini-arm64" ;; \
+      *) echo "unsupported architecture: ${ARCH}"; exit 1 ;; \
+    esac; \
+    curl -fsSL "${TINI_BIN_URL}" -o /usr/bin/tini; \
+    chmod +x /usr/bin/tini
+
+# Install Moon CLI
+RUN bash -c 'bash <(curl -fsSL https://moonrepo.dev/install/moon.sh) "$MOON_VERSION"'
+
+WORKDIR /srv
 
 # -----------------------------------------------------------------------------
 # Scaffold the specific project.
 # -----------------------------------------------------------------------------
 FROM base AS skeleton
 COPY --link . .
-RUN moon docker scaffold {{ package_name | kebab_case }}
+RUN MOON_LOG=error moon docker scaffold {{ package_name | kebab_case }}
 
 # -----------------------------------------------------------------------------
 # Install dependencies and build the application.
@@ -35,8 +56,7 @@ RUN moon docker scaffold {{ package_name | kebab_case }}
 FROM base AS builder
 
 # Copy workspace skeleton
-# COPY --from=skeleton /root/.proto /root/.proto
-COPY --from=skeleton /srv/.moon/docker/workspace .
+COPY --from=skeleton /srv/.moon/docker/configs .
 
 # Install toolchain and dependencies
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store moon docker setup
@@ -59,6 +79,7 @@ FROM base AS pruner
 COPY --from=builder /srv/node_modules /srv/node_modules
 COPY --from=builder /srv/package.json /srv/package.json
 COPY --from=builder /srv/pnpm-lock.yaml /srv/pnpm-lock.yaml
+COPY --from=builder /srv/pnpm-workspace.yaml /srv/pnpm-workspace.yaml
 
 # Only copy the require files from builder stage
 COPY --from=builder /srv/apps/{{ package_name | kebab_case }}/node_modules /srv/apps/{{ package_name | kebab_case }}/node_modules
@@ -68,7 +89,7 @@ COPY --from=builder /srv/apps/{{ package_name | kebab_case }}/build /srv/apps/{{
 
 # Cleanup uncessary files and set executable permissions for the server.
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod \
-    --frozen-lockfile --ignore-scripts && pnpm prune --prod \
+    --no-frozen-lockfile --ignore-scripts && pnpm prune --prod \
     --ignore-scripts && pnpm dlx clean-modules clean --yes \
     "!**/sharp/**" "!**/@repo/**"
 
@@ -77,27 +98,14 @@ RUN chmod +x /srv/apps/{{ package_name | kebab_case }}/server.mjs
 # -----------------------------------------------------------------------------
 # Production image, copy build output files and run the application (runner).
 # -----------------------------------------------------------------------------
-FROM --platform=${PLATFORM} gcr.io/distroless/nodejs${NODE_VERSION}-debian12
+FROM gcr.io/distroless/nodejs${NODE_VERSION}-debian13:${DISTROLESS_TAG} AS runner
 
-# ----- Read application environment variables --------------------------------
-
+# Read application environment variables
 ARG VITE_API_URL VITE_BASE_URL
 
-# ----- Read application environment variables --------------------------------
-
-# Copy the build output files from the installer stage.
+# Copy build output files and required binaries from previous stage
 COPY --from=pruner --chown=nonroot:nonroot /srv /srv
-
-# Copy some necessary system utilities from previous stage (~7MB).
-# To enhance security, consider avoiding the copying of sysutils.
 COPY --from=base /usr/bin/tini /usr/bin/tini
-COPY --from=glibc /usr/bin/env /usr/bin/env
-COPY --from=glibc /bin/clear /bin/clear
-COPY --from=glibc /bin/mkdir /bin/mkdir
-COPY --from=glibc /bin/which /bin/which
-COPY --from=glibc /bin/cat /bin/cat
-COPY --from=glibc /bin/ls /bin/ls
-COPY --from=glibc /bin/sh /bin/sh
 
 # Define the host and port to listen on.
 ARG NODE_ENV=production HOST=0.0.0.0 PORT={{ port_number }}

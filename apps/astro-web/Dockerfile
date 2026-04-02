@@ -1,34 +1,55 @@
 # syntax=docker/dockerfile:1.7
 
 # Arguments with default value (for build).
-ARG PLATFORM=linux/amd64
+ARG MOON_VERSION=2.1.1
 ARG NODE_VERSION=22
 
-FROM busybox:1.37-glibc AS glibc
 FROM joseluisq/static-web-server:2 AS httpd
 
 # -----------------------------------------------------------------------------
 # Base image with pnpm package manager.
 # -----------------------------------------------------------------------------
-FROM --platform=${PLATFORM} node:${NODE_VERSION}-bookworm-slim AS base
-ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 COREPACK_INTEGRITY_KEYS=0
-ENV LEFTHOOK=0 CI=true PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=true
-ENV MOON_TOOLCHAIN_FORCE_GLOBALS=1 MOON_INSTALL_DIR="/usr/bin"
-ENV PNPM_HOME="/pnpm" PATH="$PNPM_HOME:$MOON_INSTALL_DIR:$PATH"
-RUN corepack enable && corepack prepare pnpm@latest-10 --activate
-WORKDIR /srv
+FROM node:${NODE_VERSION}-trixie-slim AS base
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 COREPACK_INTEGRITY_KEYS=0 DO_NOT_TRACK=1
+ENV NODE_VERSION=$NODE_VERSION PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=true PNPM_HOME="/pnpm"
+ENV CI=true MOON_TOOLCHAIN_FORCE_GLOBALS=1 MOON_INSTALL_DIR="/usr/bin"
+ENV PATH="$PNPM_HOME:$MOON_INSTALL_DIR:$PATH"
 
-# Install system dependencies and moon cli
-RUN apt-get update && apt-get -yqq --no-install-recommends install curl tini jq ca-certificates
-RUN apt -yqq purge && update-ca-certificates && apt -yqq autoremove && apt -yqq clean
-RUN curl -fsSL https://moonrepo.dev/install/moon.sh | bash
+# Install and enable PNPM via corepack
+RUN corepack enable && corepack prepare pnpm@latest-10 --activate
+
+# Install system dependencies (optional tools for building and debugging)
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean && apt-get update -y \
+    && apt-get -yqq --no-install-recommends install build-essential curl \
+       inotify-tools pkg-config libssl-dev git unzip ca-certificates jq \
+    && update-ca-certificates
+
+# Add tini for signal handling and zombie reaping
+RUN set -eux; \
+    TINI_DOWNLOAD_URL="https://github.com/krallin/tini/releases/download/v0.19.0" \
+    ARCH="$(dpkg --print-architecture)"; \
+    case "${ARCH}" in \
+      amd64|x86_64) TINI_BIN_URL="${TINI_DOWNLOAD_URL}/tini" ;; \
+      arm64|aarch64) TINI_BIN_URL="${TINI_DOWNLOAD_URL}/tini-arm64" ;; \
+      *) echo "unsupported architecture: ${ARCH}"; exit 1 ;; \
+    esac; \
+    curl -fsSL "${TINI_BIN_URL}" -o /usr/bin/tini; \
+    chmod +x /usr/bin/tini
+
+# Install Moon CLI
+RUN bash -c 'bash <(curl -fsSL https://moonrepo.dev/install/moon.sh) "$MOON_VERSION"'
+
+WORKDIR /srv
 
 # -----------------------------------------------------------------------------
 # Scaffold the specific project.
 # -----------------------------------------------------------------------------
 FROM base AS skeleton
 COPY --link . .
-RUN moon docker scaffold astro-web
+RUN MOON_LOG=error moon docker scaffold astro-web
 
 # -----------------------------------------------------------------------------
 # Install dependencies and build the application.
@@ -36,8 +57,7 @@ RUN moon docker scaffold astro-web
 FROM base AS builder
 
 # Copy workspace skeleton
-# COPY --from=skeleton /root/.proto /root/.proto
-COPY --from=skeleton /srv/.moon/docker/workspace .
+COPY --from=skeleton /srv/.moon/docker/configs .
 
 # Install toolchain and dependencies
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store moon docker setup
@@ -51,31 +71,16 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store moon run astro-web:build
 # -----------------------------------------------------------------------------
 # Production image, copy build output files and run the application (runner).
 # -----------------------------------------------------------------------------
-FROM --platform=${PLATFORM} gcr.io/distroless/base-nossl-debian12 AS runner
+FROM gcr.io/distroless/base-nossl-debian12 AS runner
 
-# ----- Read application environment variables --------------------------------
-
+# Read application environment variables
 ARG PUBLIC_BASE_URL
 
-# ----- Read application environment variables --------------------------------
-
-# Copy the build output files from the installer stage.
+# Copy build output files and required binaries from previous stage
 COPY --from=builder --chown=nonroot:nonroot /srv/apps/astro-web/dist /srv
-
-# Copy the required binaries and configuration file.
 COPY --from=skeleton /srv/docker/sws-mpa.toml /etc/sws.toml
 COPY --from=httpd /static-web-server /usr/bin/sws
 COPY --from=base /usr/bin/tini /usr/bin/tini
-
-# Copy some necessary system utilities from previous stage (~7MB).
-# To enhance security, consider avoiding the copying of sysutils.
-# COPY --from=glibc /usr/bin/env /usr/bin/env
-# COPY --from=glibc /bin/clear /bin/clear
-# COPY --from=glibc /bin/mkdir /bin/mkdir
-# COPY --from=glibc /bin/which /bin/which
-# COPY --from=glibc /bin/cat /bin/cat
-# COPY --from=glibc /bin/ls /bin/ls
-# COPY --from=glibc /bin/sh /bin/sh
 
 # Define the log level, host and port to listen on.
 ARG SERVER_LOG_LEVEL=info SERVER_HOST=0.0.0.0 SERVER_PORT=4321

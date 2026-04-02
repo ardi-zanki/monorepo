@@ -2,7 +2,7 @@
 
 @plugin "tailwindcss-motion";
 
-@variant dark (&:where([data-theme="dark"] *));
+/* @variant dark (&:where([data-theme="dark"] *)); */
 
 /* Debug element */
 @utility debug {

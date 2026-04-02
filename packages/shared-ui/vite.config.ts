@@ -4,7 +4,6 @@ import react from "@vitejs/plugin-react";
 import { env, isDevelopment } from "std-env";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
-import tsconfigPaths from "vite-tsconfig-paths";
 import pkg from "./package.json" with { type: "json" };
 
 // Check if the current environment is CI or test environment
@@ -14,7 +13,6 @@ export default defineConfig({
 	plugins: [
 		react(),
 		tailwindcss(),
-		tsconfigPaths(),
 		/* Generate declarations for TypeScript */
 		!isTestOrStorybook &&
 			dts({
@@ -42,7 +40,7 @@ export default defineConfig({
 			formats: ["es"],
 		},
 		outDir: resolve("dist"),
-		rollupOptions: {
+		rolldownOptions: {
 			watch: {
 				include: ["src/**"],
 				exclude: ["src/**/*.stories.@(ts|tsx)"],
@@ -56,7 +54,6 @@ export default defineConfig({
 				assetFileNames: "assets/[name].[ext]",
 				manualChunks: undefined, // Let rollup handle chunking automatically
 				preserveModules: false, // To enable tree-shaking set to `true`
-				reexportProtoFromExternal: false,
 				preserveModulesRoot: "src",
 				banner: "'use client';",
 			},

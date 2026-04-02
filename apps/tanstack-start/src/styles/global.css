@@ -3,7 +3,7 @@
 @import "./colors.css";
 
 @plugin "tailwindcss-motion";
-@variant dark (&:where([data-theme="dark"] *));
+/* @variant dark (&:where([data-theme="dark"] *)); */
 
 @source "../../../../packages/shared-ui/**/*.{ts,tsx}";
 

@@ -44,9 +44,7 @@ export default function HomeScreen() {
 							</Link>
 							<Link href="/dashboard" asChild>
 								<Pressable style={styles.secondaryButton}>
-									<Text style={styles.secondaryButtonText}>
-										Try dashboard
-									</Text>
+									<Text style={styles.secondaryButtonText}>Try dashboard</Text>
 								</Pressable>
 							</Link>
 						</>

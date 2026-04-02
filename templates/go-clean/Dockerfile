@@ -2,19 +2,19 @@
 
 # Arguments with default value (for build).
 ARG DISTROLESS_TAG=nonroot
-ARG PLATFORM=linux/amd64
+ARG MOON_VERSION=2.1.1
 ARG NODE_VERSION=22
-ARG GO_VERSION=1.25
+ARG GO_VERSION=1.26
 
 # -----------------------------------------------------------------------------
 # Base image for building the Golang app.
 # -----------------------------------------------------------------------------
-FROM --platform=${PLATFORM} golang:${GO_VERSION}-trixie AS base_go
+FROM golang:${GO_VERSION}-trixie AS base_go
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 COREPACK_INTEGRITY_KEYS=0
 ENV FNM_PATH=/usr/bin PNPM_HOME=/pnpm HOME=/root
 ENV PATH="$HOME/.local/share/fnm:$PNPM_HOME:$PATH"
 ENV PATH="/root/.moon/bin:$PATH"
-ARG NODE_VERSION=22.18
+ARG NODE_VERSION=22
 
 # Install system dependencies
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
@@ -52,7 +52,7 @@ RUN set -eux; \
     chmod +x /usr/bin/tini
 
 # Install Moonrepo CLI
-RUN curl -fsSL https://moonrepo.dev/install/moon.sh | bash
+RUN bash <(curl -fsSL https://moonrepo.dev/install/moon.sh) $MOON_VERSION
 
 WORKDIR /srv
 
@@ -68,7 +68,7 @@ COPY --link . .
 SHELL ["/usr/bin/bash", "-c"]
 ENV BASH_ENV=$HOME/.bashrc
 
-RUN moon docker scaffold {{ package_name | kebab_case }}
+RUN MOON_LOG=error moon docker scaffold {{ package_name | kebab_case }}
 
 # -----------------------------------------------------------------------------
 # Install dependencies and build the application.
@@ -81,7 +81,7 @@ RUN go env -w GOCACHE=/go-cache
 RUN go env -w GOMODCACHE=/gomod-cache
 
 # Copy workspace skeleton
-COPY --from=skeleton /srv/.moon/docker/workspace .
+COPY --from=skeleton /srv/.moon/docker/configs .
 
 # Install toolchain and dependencies
 RUN --mount=type=cache,target=/gomod-cache --mount=type=cache,target=/go-cache moon setup
@@ -97,10 +97,9 @@ RUN --mount=type=cache,target=/gomod-cache --mount=type=cache,target=/go-cache m
 # -----------------------------------------------------------------------------
 # Production image, copy build output files and run the application (runner).
 # -----------------------------------------------------------------------------
-FROM --platform=${PLATFORM} gcr.io/distroless/cc-debian12:${DISTROLESS_TAG} AS runner
+FROM gcr.io/distroless/cc-debian12:${DISTROLESS_TAG} AS runner
 
-# ----- Read application environment variables --------------------------------
-
+# Read application environment variables
 ARG APP_ENVIRONMENT
 ARG APP_HOST
 ARG APP_PORT
@@ -115,9 +114,7 @@ ARG OTEL_EXPORTER_OTLP_ENDPOINT
 ARG SERVICE_NAME
 ARG TRACING_SAMPLE_RATE
 
-# ----- Read application environment variables --------------------------------
-
-# Copy the build output files and necessary utilities from previous stage.
+# Copy build output files and required binaries from previous stage
 COPY --from=builder --chown=nonroot:nonroot /srv/apps/{{ package_name | kebab_case }}/build/{{ package_name | kebab_case }} /srv/{{ package_name | kebab_case }}
 COPY --from=builder --chmod=775 /usr/bin/tini /usr/bin/tini
 

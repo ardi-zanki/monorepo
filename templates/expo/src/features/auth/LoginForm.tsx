@@ -53,7 +53,11 @@ export function LoginForm({ onSignedIn }: LoginFormProps) {
 					placeholderTextColor={String(textColor) + "80"}
 					style={[
 						styles.input,
-						{ borderColor: border, color: textColor, backgroundColor: background },
+						{
+							borderColor: border,
+							color: textColor,
+							backgroundColor: background,
+						},
 					]}
 					value={email}
 					onChangeText={(value) => {
@@ -73,7 +77,11 @@ export function LoginForm({ onSignedIn }: LoginFormProps) {
 					secureTextEntry
 					style={[
 						styles.input,
-						{ borderColor: border, color: textColor, backgroundColor: background },
+						{
+							borderColor: border,
+							color: textColor,
+							backgroundColor: background,
+						},
 					]}
 					value={password}
 					onChangeText={(value) => {

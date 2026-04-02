@@ -1,7 +1,6 @@
+import { Redirect } from "expo-router";
 import React from "react";
 import { StyleSheet } from "react-native";
-
-import { Redirect } from "expo-router";
 
 import { Screen } from "#/components/layout/Screen";
 import { View } from "#/components/Themed";

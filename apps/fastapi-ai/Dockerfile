@@ -1,4 +1,5 @@
-FROM python:3.13-slim-bookworm
+FROM python:3.14-slim-trixie
+ENV UV_VENV_CLEAR=1
 
 # The installer requires curl (and certificates) to download the release archive
 RUN apt-get update && apt-get install -y --no-install-recommends \

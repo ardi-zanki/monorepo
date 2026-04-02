@@ -6,7 +6,6 @@ import { nitro } from "nitro/vite";
 import { env } from "std-env";
 import { defineConfig } from "vite";
 import devtoolsJson from "vite-plugin-devtools-json";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 // Check if the current environment is CI or test environment
 const isTestOrStorybook = env.VITEST || process.argv[1]?.includes("storybook");
@@ -15,7 +14,6 @@ export default defineConfig(() => ({
     envPrefix: "VITE_" /* Prefix for environment variables */,
     plugins: [
         tailwindcss(),
-        tsconfigPaths(),
         !isTestOrStorybook &&
             tanstackStart({
                 srcDirectory: "src",

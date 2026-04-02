@@ -2,9 +2,9 @@
 # yaml-language-server: $schema=https://moonrepo.dev/schemas/project.json
 $schema: "https://moonrepo.dev/schemas/project.json"
 
-type: application
+layer: application
 language: go
-toolchain:
+toolchains:
   default: null
 stack: backend
 tags: ["app", "backend"]
@@ -13,7 +13,7 @@ tags: ["app", "backend"]
 id: "go-modular"
 
 project:
-  name: "go-modular"
+  title: "go-modular"
   description: "_CHANGE_ME_DESCRIPTION_"
 
 tasks:
@@ -62,7 +62,7 @@ tasks:
       envFile: ".env"
 
   test:
-    command: "gotestsum --format short-verbose --"
+    script: "gotestsum --format short-verbose --"
     args: ["-count=1", "-v", "./internal/...", "./modules/...", "./pkg/..."]
     deps: ["tidy"]
     options:
@@ -128,16 +128,15 @@ tasks:
       shell: true
 
   install-mockery:
-    command: "$workspaceRoot/.moon/scripts/install_mockery.sh v3.5.1"
+    command: "./scripts/install_mockery.sh v3.5.1"
     options:
+      runFromWorkspaceRoot: true
       shell: true
-      outputStyle: buffer-only-failure
-      interactive: true
       runInCI: false
       cache: false
 
   generate-swagger:
-    command: >
+    script: >
       swag init -o $projectRoot/docs -d cmd,internal,modules --parseDependency
       && swag fmt --dir $projectRoot/docs
       && go mod tidy
@@ -170,7 +169,7 @@ tasks:
       mergeEnv: replace
       runFromWorkspaceRoot: true
       interactive: false
-      outputStyle: buffer-only-failure
+      outputStyle: stream
       runInCI: false
       cache: false
       shell: true
@@ -183,9 +182,9 @@ tasks:
         --name $DOCKER_IMAGE $DOCKER_IMAGE:$DOCKER_IMAGE_VERSION
     options:
       mergeEnv: replace
-      outputStyle: buffer-only-failure
+      outputStyle: stream
       runFromWorkspaceRoot: true
-      interactive: false
+      interactive: true
       runInCI: false
       cache: false
       shell: true
@@ -195,12 +194,12 @@ tasks:
       DOCKER_IMAGE="$(jq -r .name <$workspaceRoot'/package.json')-$project" \
       DOCKER_IMAGE_VERSION="$(jq -r .version <$workspaceRoot'/package.json')" \
       && docker run --network=host --rm -it --env-file $projectRoot/.env \
-        --entrypoint /bin/sh $DOCKER_IMAGE:$DOCKER_IMAGE_VERSION
+        --entrypoint sh $DOCKER_IMAGE:$DOCKER_IMAGE_VERSION
     options:
       mergeEnv: replace
       runFromWorkspaceRoot: true
-      outputStyle: buffer-only-failure
-      interactive: false
+      outputStyle: stream
+      interactive: true
       runInCI: false
       cache: false
       shell: true

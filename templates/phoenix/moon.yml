@@ -2,9 +2,9 @@
 # yaml-language-server: $schema=https://moonrepo.dev/schemas/project.json
 $schema: 'https://moonrepo.dev/schemas/project.json'
 
-type: application
+layer: application
 language: unknown
-toolchain:
+toolchains:
   default: null
 stack: backend
 tags: ['app']
@@ -68,7 +68,7 @@ tasks:
       shell: true
 
   docker-shell:
-    command: 'docker run --network=host --rm -it --env-file .env --entrypoint /bin/sh $IMAGE_NAME:$APP_VERSION'
+    command: 'docker run --network=host --rm -it --env-file .env --entrypoint sh $IMAGE_NAME:$APP_VERSION'
     options:
       mergeEnv: replace
       runFromWorkspaceRoot: true
