@@ -8,8 +8,15 @@ stack: frontend
 tags: ['app']
 
 # Overrides the name (identifier) of the project
-id: 'shared-ui'
+id: '{{ package_name | kebab_case }}'
 
 project:
-  title: shared-ui
+  title: {{ package_name | kebab_case }}
   description: Shared UI Components for React apps
+
+tasks:
+  storybook-upgrade:
+    command: pnpm dlx storybook@latest upgrade
+    options:
+      runDepsInParallel: false
+      cache: false

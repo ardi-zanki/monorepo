@@ -1,6 +1,7 @@
-import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui";
+import * as ToggleGroupPrimitive from "@radix-ui/react-toggle-group";
 import * as React from "react";
-import { type ToggleVariants, toggleStyles } from "../toggle/toggle.css";
+import type { ToggleVariants } from "../toggle/toggle.css";
+import { toggleStyles } from "../toggle/toggle.css";
 import { toggleGroupStyles } from "./toggle-group.css";
 
 const ToggleGroupContext = React.createContext<ToggleVariants>({
@@ -8,28 +9,28 @@ const ToggleGroupContext = React.createContext<ToggleVariants>({
 	variant: "default",
 });
 
-const ToggleGroup = React.forwardRef<
-	React.ComponentRef<typeof ToggleGroupPrimitive.Root>,
-	React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> &
-		ToggleVariants
->(({ className, variant, size, children, ...props }, ref) => {
-	return (
-		<ToggleGroupPrimitive.Root
-			ref={ref}
-			className={toggleGroupStyles({ className })}
-			{...props}
-		>
-			<ToggleGroupContext.Provider value={{ variant, size }}>
-				{children}
-			</ToggleGroupContext.Provider>
-		</ToggleGroupPrimitive.Root>
-	);
-});
+type ToggleGroupProps = React.ComponentPropsWithoutRef<"div"> & ToggleVariants;
+
+const ToggleGroup = React.forwardRef<HTMLDivElement, ToggleGroupProps>(
+	({ className, variant, size, children, ...props }, ref) => {
+		const Root = ToggleGroupPrimitive.Root;
+		return (
+			// @ts-expect-error - Radix toggle group types don't include children in union
+			<Root ref={ref} className={toggleGroupStyles({ className })} {...props}>
+				<ToggleGroupContext.Provider value={{ variant, size }}>
+					{children}
+				</ToggleGroupContext.Provider>
+			</Root>
+		);
+	},
+);
+
+type ToggleGroupItemProps = React.ComponentPropsWithoutRef<"button"> &
+	ToggleVariants;
 
 const ToggleGroupItem = React.forwardRef<
-	React.ComponentRef<typeof ToggleGroupPrimitive.Item>,
-	React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Item> &
-		ToggleVariants
+	HTMLButtonElement,
+	ToggleGroupItemProps
 >(({ className, children, variant, size, ...props }, ref) => {
 	const context = React.useContext(ToggleGroupContext);
 	const styles = toggleStyles({
@@ -38,10 +39,12 @@ const ToggleGroupItem = React.forwardRef<
 		className,
 	});
 
+	const Item = ToggleGroupPrimitive.Item;
 	return (
-		<ToggleGroupPrimitive.Item ref={ref} className={styles} {...props}>
+		// @ts-expect-error - Radix toggle group item types don't include children
+		<Item ref={ref} className={styles} {...props}>
 			{children}
-		</ToggleGroupPrimitive.Item>
+		</Item>
 	);
 });
 

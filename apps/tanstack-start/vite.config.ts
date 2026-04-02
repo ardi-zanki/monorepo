@@ -25,12 +25,12 @@ export default defineConfig(() => ({
 		react(),
 		devtoolsJson(),
 	],
-  resolve: {
-    alias: {
-      '#': resolve('./src')
-    },
-    tsconfigPaths: true
-  },
+	resolve: {
+		alias: {
+			"#": resolve("./src"),
+		},
+		tsconfigPaths: true,
+	},
 	server: { port: 3300, host: false },
 	publicDir: resolve("public"),
 	optimizeDeps: {

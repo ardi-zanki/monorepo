@@ -17,6 +17,12 @@ export default defineConfig(({ isSsrBuild }) => ({
 		// Do not optimize internal workspace dependencies.
 		exclude: ["@repo/shared-ui"],
 	},
+	resolve: {
+		alias: {
+			"#": resolve("./app"),
+		},
+		tsconfigPaths: true,
+	},
 	build: {
 		manifest: true,
 		emptyOutDir: true,
@@ -25,5 +31,4 @@ export default defineConfig(({ isSsrBuild }) => ({
 		minify: isProduction,
 		rolldownOptions: isSsrBuild ? { input: "./server/app.ts" } : undefined,
 	},
-
 }));

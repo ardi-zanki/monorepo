@@ -17,12 +17,12 @@ export default defineConfig(({ isSsrBuild }) => ({
 		// Do not optimize internal workspace dependencies.
 		exclude: ["@repo/shared-ui"],
 	},
-  resolve: {
-    alias: {
-      '#': resolve('./app')
-    },
-    tsconfigPaths: true
-  },
+	resolve: {
+		alias: {
+			"#": resolve("./app"),
+		},
+		tsconfigPaths: true,
+	},
 	build: {
 		manifest: true,
 		emptyOutDir: true,

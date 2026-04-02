@@ -1,8 +1,18 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.2.5/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
 	"extends": ["./biome.json"],
 	"root": false,
 	"linter": {
 		"enabled": false
+	},
+	"css": {
+		"parser": {
+			"allowWrongLineComments": false,
+			"tailwindDirectives": true
+		},
+		"formatter": {
+			"enabled": true,
+			"quoteStyle": "double"
+		}
 	}
 }

@@ -1,5 +1,5 @@
 {
-    "$schema": "https://biomejs.dev/schemas/2.2.5/schema.json",
+    "$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
     "vcs": {
         "enabled": true,
         "clientKind": "git",
@@ -153,7 +153,8 @@
     },
     "css": {
         "parser": {
-            "allowWrongLineComments": false
+            "allowWrongLineComments": false,
+            "tailwindDirectives": true
         },
         "formatter": {
             "enabled": true,
